@@ -70,16 +70,25 @@ const authenticateToken = (req, res, next) => {
 
 
 // Database Connection
-const pool = mysql.createPool({
+const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'focus_quest',
   port: process.env.DB_PORT || 3306,
+  ...(process.env.DB_HOST !== 'localhost' ? { ssl: { rejectUnauthorized: false } } : {}),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-})
+}
+
+console.log('🔌 DB Config Check:')
+console.log(`   Host: ${dbConfig.host}`)
+console.log(`   Port: ${dbConfig.port}`)
+console.log(`   User: ${dbConfig.user}`)
+console.log(`   SSL: ${dbConfig.ssl ? 'Enabled' : 'Disabled'}`)
+
+const pool = mysql.createPool(dbConfig)
 
 pool.getConnection()
   .then(connection => {
