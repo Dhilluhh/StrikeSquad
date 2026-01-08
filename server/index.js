@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const rateLimit = require('express-rate-limit')
+const path = require('path')
 require('dotenv').config()
 
 const app = express()
@@ -447,8 +448,13 @@ app.post('/api/sessions', authenticateToken, async (req, res) => {
   }
 })
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+// --- SERVE FRONTEND (Production) ---
+// Serve static files from the 'public' directory (where we'll copy the React build)
+app.use(express.static(path.join(__dirname, 'public')))
+
+// Handle React Routing - send back index.html for any unknown route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
 app.listen(PORT, () => {
