@@ -1,6 +1,6 @@
 # Focus Quest - Gamified EdTech MVP
 
-A secure, gamified Pomodoro-based learning application built with React, Tailwind CSS, Framer Motion, and MySQL.
+A secure, gamified Pomodoro-based learning application built with React, Tailwind CSS, Framer Motion, Node.js, and MySQL.
 
 ## Features
 
@@ -18,13 +18,13 @@ A secure, gamified Pomodoro-based learning application built with React, Tailwin
 - Persistent character configuration
 
 ### Phase 3: Focus Quest (Pomodoro RPG)
-- Session setup with total study hours
+- Session setup with total study hours or custom timer
 - 25-minute work / 5-minute break cycles
 - State machine for Focus Loop (Idle, Focusing, Warning, Penalizing, Breaking)
 - Yellow zone grace period (5 seconds)
 - HP drain system (10 HP every 5 seconds if distracted)
+- Lock-down mode with authorized study resources
 - Alert system with speech bubbles
-- Tab closure warning
 
 ### Phase 4: Student Dashboard
 - Total XP earned display
@@ -32,89 +32,123 @@ A secure, gamified Pomodoro-based learning application built with React, Tailwin
 - Quests accomplished counter
 - Focus consistency chart (health history)
 
-## Security Features
-
-- Input sanitization for all user-defined strings
-- XSS prevention
-- Secure password hashing (mock for MVP)
-- localStorage for state persistence (MVP)
-- MySQL backend for production data storage
-
 ## Tech Stack
 
 - **Frontend**: React 18, Vite, Tailwind CSS, Framer Motion
-- **Backend**: Node.js, Express
-- **Database**: MySQL
-- **Charts**: Recharts
+- **Backend**: Node.js, Express, MySQL (mysql2)
+- **Database**: Cloud MySQL (e.g., Aiven, PlanetScale, or local MySQL)
+- **Deployment**:
+  - **Frontend**: Vercel
+  - **Backend**: Render
 
-## Installation
+## Project Structure
 
-1. Install dependencies:
+The project is split into two independent folders for easy deployment:
+
+```
+focus-quest/
+├── client/              # Frontend (React + Vite)
+│   ├── src/
+│   ├── public/
+│   ├── package.json     # Client dependencies
+│   └── vite.config.js
+│
+├── server/              # Backend (Node.js + Express)
+│   ├── index.js         # API & Server logic
+│   ├── database.sql     # Database Schema
+│   └── package.json     # Server dependencies
+```
+
+## Local Development Setup
+
+### Prerequisites
+- Node.js (v18+)
+- MySQL Server running locally (or a cloud URL)
+
+### 1. Database Setup
+Create a MySQL database named `focus_quest` and import the schema:
+```bash
+mysql -u root -p focus_quest < server/database.sql
+```
+
+### 2. Backend Setup (Server)
+Navigate to the `server` directory:
+```bash
+cd server
+```
+
+Install dependencies:
 ```bash
 npm install
 ```
 
-2. Set up MySQL database:
-```bash
-mysql -u root -p < server/database.sql
+Create a `.env` file in the `server` directory:
+```env
+PORT=5000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=focus_quest
+JWT_SECRET=your_super_secret_key
+CLIENT_URL=http://localhost:5173
 ```
 
-3. Configure environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your database credentials
-```
-
-4. Start the development server:
+Start the backend:
 ```bash
 npm run dev
 ```
 
-5. Start the backend server (in a separate terminal):
+### 3. Frontend Setup (Client)
+Open a **new terminal** and navigate to the `client` directory:
 ```bash
-npm run server
+cd client
 ```
 
-## Project Structure
-
-```
-focus-quest/
-├── src/
-│   ├── components/       # React components
-│   ├── pages/           # Page components
-│   ├── utils/           # Utilities (security, storage, XP calculator, state machine)
-│   ├── App.jsx          # Main app component
-│   └── main.jsx         # Entry point
-├── server/
-│   ├── index.js         # Express server
-│   └── database.sql     # Database schema
-├── package.json
-└── README.md
+Install dependencies:
+```bash
+npm install
 ```
 
-## Usage
+Create a `.env` file in the `client` directory (optional for local, required for prod):
+```env
+VITE_API_URL=http://localhost:5000
+```
 
-1. **Landing Page**: View the hero section and scroll to see the magic scroll
-2. **Registration**: Click "Begin Quest" to register/login
-3. **Customization**: Customize your character after registration
-4. **Focus Quest**: Set study hours and start your Pomodoro session
-5. **Dashboard**: View your stats and progress
+Start the frontend:
+```bash
+npm run dev
+```
 
-## State Machine
+Visit `http://localhost:5173` to view the app.
 
-The Focus Loop uses a state machine with these states:
-- **Idle**: No active session
-- **Focusing**: Active work phase
-- **Warning**: 5-second grace period after tab switch
-- **Penalizing**: HP draining (10 HP every 5 seconds)
-- **Breaking**: Break phase active
+---
 
-## XP Calculation
+## Deployment Guide
 
-- Base XP per Pomodoro: 100
-- XP per minute focused: 2
-- Perfect session bonus: 50 XP
-- Level formula: `floor(sqrt(XP / 100)) + 1`
+### Backend (Render)
+1.  Connect your GitHub repository to Render.
+2.  Select the **server** directory as the `Root Directory`.
+3.  **Build Command**: `npm install`
+4.  **Start Command**: `node index.js`
+5.  Add **Environment Variables**:
+    *   `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (Your cloud database credentials)
+    *   `JWT_SECRET`
+    *   `CLIENT_URL`: The URL of your deployed Vercel frontend (e.g., `https://your-app.vercel.app`)
+
+### Frontend (Vercel)
+1.  Connect your GitHub repository to Vercel.
+2.  Select the **client** directory as the `Root Directory`.
+3.  **Build Command**: `vite build`
+4.  **Output Directory**: `dist`
+5.  Add **Environment Variables**:
+    *   `VITE_API_URL`: The URL of your deployed Render backend (e.g., `https://your-api.onrender.com`)
+
+## Security Features
+
+- **CORS Protection**: Access limited to allowed origins (Frontend URL).
+- **Secure Cookies**: HTTP-only, secure cookies for JWT storage.
+- **Input Sanitization**: XSS prevention on all user inputs.
+- **Password Hashing**: Bcrypt for secure password storage.
 
 ## License
 
